@@ -4,11 +4,20 @@
     <meta charset="utf-8">
     <link href="../css/bootstrap.css" rel="stylesheet">
 </head>
+<style>
+  BODY {
+    background: gray;
+  }
+  .holder{
+    margin-top: 50px;
+  }
+</style>
 <body>
-<header>
-</header>
-<main role="main" class="container-sm">
-{% block content %}{% endblock %}
-</main>
+  <header>
+
+  </header>
+  <main role="main" class="container-lg main">
+    {% block content %}{% endblock %}
+  </main>
 </body>
 </html>
