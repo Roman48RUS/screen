@@ -6,43 +6,52 @@ app.config["SECRET_KEY"] = "secret_key"
 j = 0
 
 
-class Image:
-    def __init__(self, image, time, number):
-        self.image = image
+class Element:
+    def __init__(self, number, type, time, src):
+        self.src = src
         self.time = time
         self.number = number
+        self.type = type
 
     def get_time(self):
         return self.time
 
-    def get_image(self):
-        return self.image
+    def get_src(self):
+        return self.src
 
     def get_number(self):
         return self.number
 
+    def get_type(self):
+        return self.type
 
-def get_images():
 
+def get_elements():
     default = None
-    images = []
+    elements = []
     f = open("cfg/time.cfg")
     i = 0
     for elem in f.readlines():
         if elem.strip():
-            if not elem.strip()[0] == ";":
-                args = elem.split()
-                if not args[1] == "default":
-                    hours = int(args[1].split(":")[0])
-                    minutes = int(args[1].split(":")[1])
-                    seconds = int(args[1].split(":")[2])
-                    img = Image("/images/" + args[0], time(hours, minutes, seconds), i)
+            conf = elem.split()
+            if conf[0] == "image":
+                typ = "image"
+                path = "/images/"
+            elif conf[0] == "video":
+                typ = "video"
+                path = "/videos/"
+            if not elem[0] == ";":
+                if not conf[2] == "default":
+                    hours = int(conf[2].split(":")[0])
+                    minutes = int(conf[2].split(":")[1])
+                    seconds = int(conf[2].split(":")[2])
+                    el = Element(i, typ, time(hours, minutes, seconds), path + conf[1])
                     i += 1
-                    images.append(img)
+                    elements.append(el)
                 else:
-                    default = "/images/" + args[0]
+                    default = path + conf[1]
                     i += 1
-    return images, default
+    return elements, default
 
 
 def test():
@@ -53,18 +62,20 @@ def test():
 
 @app.route("/", methods=["GET"])
 def index():
-    images, default = get_images()
-    return render_template("index.html", images=enumerate(images), default=default)
+    elements, default = get_elements()
+    return render_template("index.html", elements=enumerate(elements), default=default)
 
 
-@app.route("/api/current_image", methods=["GET"])
+@app.route("/api/current_element", methods=["GET"])
 def get_image():
-    for elem in get_images()[0]:
+    for elem in get_elements()[0]:
         if (elem.time.hour == datetime.now().hour
                 and elem.time.minute == datetime.now().minute
                 and elem.time.second == datetime.now().second):
-            return jsonify({"image": str(elem.get_number())})
-    return jsonify({"image": ""})
+            return jsonify({"element": str(elem.get_number()),
+                            "type": elem.get_type()})
+    return jsonify({"element": "",
+                    "type": ""})
 
 
 if __name__ == "__main__":
