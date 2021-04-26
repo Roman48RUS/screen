@@ -1,27 +1,51 @@
 {% extends "base.html" %}
 
 {% block content %}
-<div id="holder" class="carousel slide holder" data-bs-ride="carousel">
+<div id="holder" class="carousel slide holder" data-bs-ride="carousel" data-bs-interval="false">
   <div class="carousel-inner">
-    {% for item in images%}
-    <div class="carousel-item active">
+    {% for i, item in images%}
+    {% if i == 0 %}
+    <div class="carousel-item active"  data-bs-interval="false">
       <img src="{{ item.get_image() }}" class="d-block w-100">
     </div>
+    {% else %}
+    <div class="carousel-item"  data-bs-interval="false">
+      <img src="{{ item.get_image() }}" class="d-block w-100">
+    </div>
+    {% endif %}
     {% endfor %}
-    <!-- <div class="carousel-item">
-      <img src="/images/img2.jpg" class="d-block w-100">
-    </div>
-    <div class="carousel-item">
-      <img src="/images/img3.jpg" class="d-block w-100">
-    </div>
-  </div> -->
-  <!-- <button class="carousel-control-prev" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="prev">
+  </div>
+  <button class="carousel-control-prev" type="button" data-bs-target="#holder" data-bs-slide="prev">
     <span class="carousel-control-prev-icon" aria-hidden="true"></span>
     <span class="visually-hidden">Previous</span>
   </button>
-  <button class="carousel-control-next" type="button" data-bs-target="#carouselExampleControls" data-bs-slide="next">
+  <button class="carousel-control-next" type="button" data-bs-target="#holder" data-bs-slide="next">
     <span class="carousel-control-next-icon" aria-hidden="true"></span>
     <span class="visually-hidden">Next</span>
-  </button> -->
+  </button>
 </div>
+
+
+
+<script type="text/javascript">
+
+function get_current_image() {
+        var holder = document.querySelector('#holder');
+        var carousel = bootstrap.Carousel.getInstance(holder); // Retrieve a Carousel instance
+        $.ajax({
+            url: '/api/current_image',
+            type: 'get',
+            response: 'json',
+            success: function(data) { var holder = document.querySelector('#holder');
+                                      var carousel = bootstrap.Carousel.getInstance(holder);
+                                      carousel.to(data["image"]);}
+        });
+
+};
+
+
+get_current_image();
+setInterval(get_current_image, 1000);
+
+</script>
 {% endblock %}
