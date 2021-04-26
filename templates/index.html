@@ -3,16 +3,20 @@
 {% block content %}
 <div id="holder" class="carousel slide holder" data-bs-ride="carousel" data-bs-interval="false">
   <div class="carousel-inner">
-    {% for i, item in images%}
-    {% if i == 0 %}
+    {% if default %}
     <div class="carousel-item active"  data-bs-interval="false">
-      <img src="{{ item.get_image() }}" class="d-block w-100">
+      <img src="{{ default }}" class="d-block w-100">
     </div>
     {% else %}
+    <h6 style="color: red"> Нет дефолтного изображения</h6>
+    <h6 style="color: red">Функциональность может быть нарушена</h6>
+    {% endif %}
+    {% for i, item in images%}
+
     <div class="carousel-item"  data-bs-interval="false">
       <img src="{{ item.get_image() }}" class="d-block w-100">
     </div>
-    {% endif %}
+
     {% endfor %}
   </div>
   <button class="carousel-control-prev" type="button" data-bs-target="#holder" data-bs-slide="prev">
@@ -38,7 +42,7 @@ function get_current_image() {
             response: 'json',
             success: function(data) { var holder = document.querySelector('#holder');
                                       var carousel = bootstrap.Carousel.getInstance(holder);
-                                      carousel.to(data["image"]);}
+                                      if (data["image"]) carousel.to(data["image"]);}
         });
 
 };
