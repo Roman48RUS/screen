@@ -3,34 +3,50 @@
 {% block content %}
 <div id="holder" class="carousel slide holder" data-bs-ride="carousel" data-bs-interval="false">
   <div class="carousel-inner">
-
-    {% if default %}
-      <div class="carousel-item active"  data-bs-interval="false">
-        <img src="{{ default }}" class="d-block w-100">
-      </div>
-    {% else %}
-      <div class="carousel-item active"  data-bs-interval="false">
-        <h1 style="color: red"> Нет дефолтного изображения</h1>
-        <h1 style="color: red">Функциональность может быть нарушена</h1>
-      </div>
-    {% endif %}
-
     {% for i, item in elements%}
-
-    {% if item.get_type() == "image" %}
-      <div class="carousel-item"  data-bs-interval="false">
-        <img src="{{ item.get_src() }}" class="d-block w-100">
-      </div>
-    {% else %}
-
-      {% if item.get_type() == "video" %}
-        <div class="carousel-item"  data-bs-interval="false">
-          <video id="vid{{ item.get_number() }}" src="{{ item.get_src() }}"></video>
-        </div>
+      {% if i == 0 %}
+        {% if item.get_type() == "image" %}
+          <div class="carousel-item active"  data-bs-interval="false">
+            <img src="{{ item.get_src() }}" class="d-block w-100">
+          </div>
+        {% else %}
+          {% if item.get_type() == "video" %}
+            <div class="carousel-item active"  data-bs-interval="false">
+              <video id="vid{{ item.get_number() }}" src="{{ item.get_src() }}"></video>
+            </div>
+          {% else %}
+            {% if item.get_type() == "text" %}
+              <div class="carousel-item active"  data-bs-interval="false">
+                <div class="">
+                  <iframe src="{{ item.get_src() }}"></iframe>
+                </div>
+              </div>
+            {% else %}
+            {% endif %}
+          {% endif %}
+        {% endif %}
       {% else %}
+        {% if item.get_type() == "image" %}
+          <div class="carousel-item"  data-bs-interval="false">
+            <img src="{{ item.get_src() }}" class="d-block w-100">
+          </div>
+        {% else %}
+          {% if item.get_type() == "video" %}
+            <div class="carousel-item"  data-bs-interval="false">
+              <video id="vid{{ item.get_number() }}" src="{{ item.get_src() }}"></video>
+            </div>
+          {% else %}
+            {% if item.get_type() == "text" %}
+              <div class="carousel-item"  data-bs-interval="false">
+                <div class="">
+                  <iframe src="{{ item.get_src() }}"></iframe>
+                </div>
+              </div>
+            {% else %}
+            {% endif %}
+          {% endif %}
+        {% endif %}
       {% endif %}
-
-    {% endif %}
     {% endfor %}
   </div>
   <button class="carousel-control-prev" type="button" data-bs-target="#holder" data-bs-slide="prev">
@@ -47,35 +63,42 @@
 
 <script type="text/javascript">
 
-function get_current_image() {
-        var holder = document.querySelector('#holder');
-        var carousel = bootstrap.Carousel.getInstance(holder);
-        $.ajax({
-            url: '/api/current_element',
-            type: 'get',
-            response: 'json',
-            success: function(data)
-            {
-              if (data["element"])
+  function get_current_image() {
+          var holder = document.querySelector('#holder');
+          var carousel = bootstrap.Carousel.getInstance(holder);
+          $.ajax({
+              url: '/api/current_element',
+              type: 'get',
+              response: 'json',
+              success: function(data)
               {
-              var holder = document.querySelector('#holder');
-              var carousel = bootstrap.Carousel.getInstance(holder);
-              carousel.to(data["element"]);
-              if (data["type"] == "video")
-              {
-                var vid = document.querySelector('#vid' + data["element"]);
-                vid.play();
+                if (data["element"] && data["element"] != "stop")
+                {
+                  var holder = document.querySelector('#holder');
+                  var carousel = bootstrap.Carousel.getInstance(holder);
+                  carousel.to(data["element"]);
+                  if (data["type"] == "video")
+                  {
+                    var vid = document.querySelector('#vid' + data["element"]);
+                    vid.play();
+                  }
+
+                }
+                if (data["element"] == "stop")
+                {
+                  clearInterval(timer);
+                }
+
               }
-           }
+          });
 
-            }
-        });
+  };
 
-};
 
 
 get_current_image();
-setInterval(get_current_image, 1000);
+
+let timer = setInterval(get_current_image, 1000);
 
 </script>
 {% endblock %}

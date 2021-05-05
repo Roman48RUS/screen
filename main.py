@@ -4,17 +4,19 @@ from datetime import time, datetime
 app = Flask(__name__, static_folder="/")
 app.config["SECRET_KEY"] = "secret_key"
 j = 0
+ticker = 1
+current_element = 0
 
 
 class Element:
-    def __init__(self, number, type, time, src):
+    def __init__(self, number, type, duration, src):
         self.src = src
-        self.time = time
+        self.duration = duration
         self.number = number
         self.type = type
 
-    def get_time(self):
-        return self.time
+    def get_duration(self):
+        return self.duration
 
     def get_src(self):
         return self.src
@@ -26,8 +28,11 @@ class Element:
         return self.type
 
 
+class Ticker:
+    pass
+
+
 def get_elements():
-    default = None
     elements = []
     f = open("cfg/time.cfg")
     i = 0
@@ -36,22 +41,22 @@ def get_elements():
             conf = elem.split()
             if conf[0] == "image":
                 typ = "image"
-                path = "/images/"
+                path = "\\images\\"
             elif conf[0] == "video":
                 typ = "video"
-                path = "/videos/"
+                path = "\\videos\\"
+            elif conf[0] == "text":
+                typ = "text"
+                path = "\\texts\\"
             if not elem[0] == ";":
                 if not conf[2] == "default":
-                    hours = int(conf[2].split(":")[0])
-                    minutes = int(conf[2].split(":")[1])
-                    seconds = int(conf[2].split(":")[2])
-                    el = Element(i, typ, time(hours, minutes, seconds), path + conf[1])
+                    # hours = int(conf[2].split(":")[0])
+                    # minutes = int(conf[2].split(":")[1])
+                    # seconds = int(conf[2].split(":")[2])
+                    el = Element(i, typ, int(conf[2]), path + conf[1])
                     i += 1
                     elements.append(el)
-                else:
-                    default = path + conf[1]
-                    i += 1
-    return elements, default
+    return elements
 
 
 def test():
@@ -62,18 +67,29 @@ def test():
 
 @app.route("/", methods=["GET"])
 def index():
-    elements, default = get_elements()
-    return render_template("index.html", elements=enumerate(elements), default=default)
+    global current_element
+    current_element = 0
+    elements = get_elements()
+    return render_template("index.html", elements=enumerate(elements))
 
 
 @app.route("/api/current_element", methods=["GET"])
 def get_image():
-    for elem in get_elements()[0]:
-        if (elem.time.hour == datetime.now().hour
-                and elem.time.minute == datetime.now().minute
-                and elem.time.second == datetime.now().second):
-            return jsonify({"element": str(elem.get_number()),
-                            "type": elem.get_type()})
+    global ticker, current_element
+    elements = get_elements()
+    # for elem in get_elements()[current_element:]:
+    #     # if (elem.time.hour == datetime.now().hour
+    #     #         and elem.time.minute == datetime.now().minute
+    #     #         and elem.time.second == datetime.now().second):
+    if elements[current_element].get_duration() == ticker:
+        ticker = 1
+        current_element += 1
+        if current_element >= len(elements):
+            return jsonify({"element": "stop",
+                            "type": ""})
+        return jsonify({"element": str(elements[current_element].get_number()),
+                        "type": elements[current_element].get_type()})
+    ticker += 1
     return jsonify({"element": "",
                     "type": ""})
 
